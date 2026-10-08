@@ -8,7 +8,7 @@ Document assistants should make answers reviewable. Sourcewise preserves page me
 
 ## Interface
 
-A responsive research workspace with a document library, drag-and-drop PDF upload, selectable document scope, source cards, citation copying, live library statistics, server timing, keyboard submission, and a built-in guide. UI content is rendered through text nodes. Browser visual QA could not run in the build environment because Chromium download failed; check desktop and mobile layouts locally before publishing.
+A responsive research workspace with a document library, drag-and-drop PDF upload, selectable document scope, source cards, citation copying, live library statistics, server timing, keyboard submission, and a built-in guide. UI content is rendered through text nodes. Desktop and mobile browser checks cover layout and basic offline interactions; live provider integration requires credentials.
 
 ## Features
 
@@ -21,9 +21,6 @@ A responsive research workspace with a document library, drag-and-drop PDF uploa
 
 ## Deploy on Vercel
 
-See [VERCEL_KURULUM.md](VERCEL_KURULUM.md) for the complete Turkish setup guide. Set `DATABASE_URL` to a PostgreSQL pooled connection URL with TLS, run `migrations/001_initial.sql` in that database, and set a strong `APP_PASSWORD` (at least 16 characters). No Docker, Ollama, or AI API key is needed. Vercel deployments use a 4 MB PDF limit. `app.main:app` is configured as the entrypoint.
-
-Production never falls back to local SQLite. Database connections are opened per operation and closed afterward. Model mode remains extractive by default. The workspace password protects API routes with a signed, HttpOnly cookie (Secure on Vercel); it grants access to a shared library, not user-isolated documents.
 
 ## Quick start — Python 3.12
 
@@ -109,4 +106,27 @@ The benchmark has 20 single-fact English questions and 5 no-match queries. It ch
 
 ## PostgreSQL integration tests
 
-Set `TEST_DATABASE_URL` to a disposable test database and run `python -m pytest -q`. The integration test applies the schema, uploads a generated PDF, checks persistence and page retrieval through separate connections, and deletes its test document. 
+Set `TEST_DATABASE_URL` to a disposable test database and run `python -m pytest -q`. The integration test applies the schema, uploads a generated PDF, checks persistence and page retrieval through separate connections, and deletes its test document. GitHub Actions provisions PostgreSQL for this test. CI has not been executed during artifact preparation.
+
+
+## Hybrid retrieval upgrade
+
+Sourcewise now supports BM25 keyword search, semantic cosine search, and reciprocal-rank fusion (RRF, k=60) of the top 20 rankings. OpenAI `text-embedding-3-small` embeddings use 512 dimensions and are persisted alongside chunks, tagged by model/dimension. Indexing is explicit: upload a document, then choose **Index for AI**. It sends extracted text to OpenAI. All selected documents must be indexed; missing indexes produce a visible error rather than silently downgrading retrieval.
+
+The semantic search implementation scans vectors in Python, intended for small workspaces (2,000 selected chunks maximum). Each indexed document is limited to 100 chunks, one bounded provider request. A configurable cosine threshold (`SEMANTIC_MIN_SCORE`, default 0.3) filters candidates; this heuristic is not a guarantee of relevance. Model changes require reindexing. Deletion cascades to embeddings.
+
+Set `ANSWER_MODE=openai` for a generated answer displayed beside original page excerpts. The model must return exact quotes and valid retrieved IDs; invalid quotations are rejected. Quote validation proves textual presence, **not** that every generated claim is entailed. Inspect the evidence before relying on the synthesis. Default extractive mode remains usable without an API key.
+
+### Evaluation
+
+```bash
+python -m pytest -q
+python -m evaluation.run
+python -m evaluation.hybrid --method lexical
+# Calls the paid embedding API when OPENAI_API_KEY is configured:
+python -m evaluation.hybrid --method hybrid
+```
+
+`evaluation/hybrid.py` contains 10 author-labelled synthetic paraphrase queries and reports Recall@4 and MRR@4. `paraphrase-lexical.json` records the offline baseline. Live semantic/answer quality was not measured without credentials; synthetic vector tests validate ranking mechanics, not model quality. Provider payloads and output validation are tested with mock HTTP responses. PostgreSQL integration runs in CI and is skipped locally unless a disposable TEST_DATABASE_URL is configured.
+
+Existing Neon installs must run `migrations/002_embeddings.sql` before indexing. See the new section in VERCEL_KURULUM.md.

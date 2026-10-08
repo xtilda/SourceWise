@@ -31,7 +31,7 @@ class Store:
         if not self.postgres:
             Path(path).parent.mkdir(parents=True, exist_ok=True)
             with self.connect() as db:
-                db.executescript('CREATE TABLE IF NOT EXISTS documents(id TEXT PRIMARY KEY,name TEXT,pages INTEGER); CREATE TABLE IF NOT EXISTS chunks(id TEXT PRIMARY KEY,document_id TEXT REFERENCES documents(id) ON DELETE CASCADE,page INTEGER,text TEXT);')
+                db.executescript('CREATE TABLE IF NOT EXISTS documents(id TEXT PRIMARY KEY,name TEXT,pages INTEGER); CREATE TABLE IF NOT EXISTS chunks(id TEXT PRIMARY KEY,document_id TEXT REFERENCES documents(id) ON DELETE CASCADE,page INTEGER,text TEXT); CREATE TABLE IF NOT EXISTS embeddings(chunk_id TEXT PRIMARY KEY REFERENCES chunks(id) ON DELETE CASCADE,model TEXT NOT NULL,vector TEXT NOT NULL);')
     @contextmanager
     def connect(self):
         if self.postgres:

@@ -8,6 +8,7 @@ from fastapi import FastAPI, HTTPException, UploadFile
 from fastapi.responses import FileResponse, JSONResponse
 from pydantic import BaseModel, Field
 from app.core import Store, extract_quotes, ollama_quotes
+from app.ai import retrieve, index_document, grounded_answer
 
 BASE=Path(__file__).parent
 
@@ -54,7 +55,7 @@ def create_app(db_path=None):
         return response
     @app.get('/api/config')
     def config():
-        return {'storage':'postgresql' if store.postgres else 'sqlite', 'hosted':on_vercel, 'max_upload_mb':max_upload//(1024*1024)}
+        return {'storage':'postgresql' if store.postgres else 'sqlite', 'hosted':on_vercel, 'max_upload_mb':max_upload//(1024*1024), 'ai_enabled':bool(os.getenv('OPENAI_API_KEY'))}
     app.state.store=store
     @app.get('/')
     def home(): return FileResponse(BASE/'static/index.html')
@@ -73,6 +74,12 @@ def create_app(db_path=None):
             except ValueError as e: raise HTTPException(422,str(e)) from e
             except Exception as e: raise HTTPException(422,'PDF could not be parsed.') from e
         finally: await file.close()
+    @app.post('/api/documents/{doc}/index')
+    def index(doc:str):
+        try: return index_document(store,doc)
+        except LookupError as e: raise HTTPException(404,str(e)) from e
+        except ValueError as e: raise HTTPException(422,str(e)) from e
+        except Exception as e: raise HTTPException(502,'Embedding provider unavailable. Check API key and billing.') from e
     @app.delete('/api/documents/{doc}',status_code=204)
     def delete(doc:str):
         if not store.delete(doc): raise HTTPException(404,'Document not found.')
@@ -83,24 +90,33 @@ def create_app(db_path=None):
         if not question: raise HTTPException(422,'Question cannot be blank.')
         known={x['id'] for x in store.documents()}
         if any(x not in known for x in body.document_ids): raise HTTPException(404,'Selected document not found.')
-        hits=store.search(question,body.document_ids)
+        try: hits=retrieve(store,question,body.document_ids,body.retrieval)
+        except ValueError as e: raise HTTPException(422,str(e)) from e
+        except Exception as e: raise HTTPException(502,'Semantic retrieval unavailable. Check provider configuration.') from e
         mode=os.getenv('ANSWER_MODE','extractive')
-        if mode not in ('extractive','ollama'): raise HTTPException(503,'Invalid ANSWER_MODE configuration.')
+        if mode not in ('extractive','ollama','openai'): raise HTTPException(503,'Invalid ANSWER_MODE configuration.')
         quotes=[]
+        generated=''
         if hits:
-            if mode=='ollama':
+            if mode=='openai':
+                try: generated,quotes=grounded_answer(question,hits)
+                except Exception as e: raise HTTPException(502,'Answer provider unavailable or returned invalid output.') from e
+            elif mode=='ollama':
                 try: quotes=ollama_quotes(question,hits,os.getenv('OLLAMA_URL','http://localhost:11434'),os.getenv('OLLAMA_MODEL','qwen2.5:3b'))
                 except Exception as e: raise HTTPException(502,'Local model unavailable or returned invalid output. Check Ollama configuration.') from e
             else: quotes=extract_quotes(question,hits)
         by_id={h['id']:h for h in hits}
         sources=[{'document_id':by_id[q['id']]['document_id'],'name':by_id[q['id']]['name'],'page':by_id[q['id']]['page'],'quote':q['text'],'score':by_id[q['id']]['score']} for q in quotes]
-        return {'status':'evidence_found' if sources else 'no_evidence','mode':mode,'answer':'Relevant document passages are shown below.' if sources else 'No matching evidence found. Try more specific words from the document.','sources':sources,'latency_ms':round((time.perf_counter()-start)*1000,1)}
+        return {'status':'evidence_found' if sources else 'no_evidence','mode':mode,'retrieval':body.retrieval,'generated_answer':generated,'answer':'Relevant document passages are shown below.' if sources else 'No matching evidence found. Try more specific words from the document.','sources':sources,'latency_ms':round((time.perf_counter()-start)*1000,1)}
     return app
 
 class Login(BaseModel):
     password:str=Field(min_length=1,max_length=256)
 
+from typing import Literal
+
 class Question(BaseModel):
+    retrieval:Literal['lexical','semantic','hybrid']='lexical'
     question:str=Field(min_length=1,max_length=1000)
     document_ids:list[str]=Field(default_factory=list,max_length=50)
 

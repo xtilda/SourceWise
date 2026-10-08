@@ -12,6 +12,7 @@ def test_postgres_roundtrip():
     url=os.environ['TEST_DATABASE_URL']
     with psycopg.connect(url) as c:
         c.execute(Path('migrations/001_initial.sql').read_text())
+        c.execute(Path('migrations/002_embeddings.sql').read_text())
     store=Store(url)
     result=store.ingest('integration-'+uuid4().hex+'.pdf',pdf(['A unique nebular policy permits remote Fridays.']))
     try:

@@ -1,0 +1,83 @@
+{
+  "method": "lexical",
+  "recall_at_4": 0.3,
+  "mrr_at_4": 0.25,
+  "cases": [
+    {
+      "question": "How long do I have to return my purchase?",
+      "expected_page": 1,
+      "retrieved_pages": [],
+      "reciprocal_rank": 0
+    },
+    {
+      "question": "When will my parcel arrive?",
+      "expected_page": 2,
+      "retrieved_pages": [
+        1
+      ],
+      "reciprocal_rank": 0
+    },
+    {
+      "question": "How many months is the product protected?",
+      "expected_page": 3,
+      "retrieved_pages": [
+        13,
+        3
+      ],
+      "reciprocal_rank": 0.5
+    },
+    {
+      "question": "Which day can employees stay home?",
+      "expected_page": 4,
+      "retrieved_pages": [
+        16
+      ],
+      "reciprocal_rank": 0
+    },
+    {
+      "question": "How much paid time off is available?",
+      "expected_page": 5,
+      "retrieved_pages": [],
+      "reciprocal_rank": 0
+    },
+    {
+      "question": "What time can I contact the help desk?",
+      "expected_page": 6,
+      "retrieved_pages": [],
+      "reciprocal_rank": 0
+    },
+    {
+      "question": "What is the minimum credential length?",
+      "expected_page": 7,
+      "retrieved_pages": [
+        7
+      ],
+      "reciprocal_rank": 1.0
+    },
+    {
+      "question": "How often are recovery copies made?",
+      "expected_page": 8,
+      "retrieved_pages": [
+        8
+      ],
+      "reciprocal_rank": 1.0
+    },
+    {
+      "question": "How long is stored information kept?",
+      "expected_page": 9,
+      "retrieved_pages": [],
+      "reciprocal_rank": 0
+    },
+    {
+      "question": "When must bills be settled?",
+      "expected_page": 10,
+      "retrieved_pages": [
+        7,
+        19,
+        1
+      ],
+      "reciprocal_rank": 0
+    }
+  ],
+  "limitations": "10 author-labelled synthetic paraphrases; not a general quality or answer faithfulness benchmark."
+}
