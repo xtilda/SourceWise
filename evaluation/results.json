@@ -1,0 +1,149 @@
+{
+  "dataset": "25 synthetic English keyword retrieval cases",
+  "passed": 25,
+  "total": 25,
+  "median_retrieval_ms": 0.17,
+  "limitations": "Lexical retrieval regression only. Does not measure paraphrases, Turkish morphology, semantic understanding, or live LLM output.",
+  "cases": [
+    {
+      "question": "refund",
+      "expected_page": 1,
+      "top_page": 1,
+      "passed": true
+    },
+    {
+      "question": "shipping",
+      "expected_page": 2,
+      "top_page": 2,
+      "passed": true
+    },
+    {
+      "question": "warranty",
+      "expected_page": 3,
+      "top_page": 3,
+      "passed": true
+    },
+    {
+      "question": "remote",
+      "expected_page": 4,
+      "top_page": 4,
+      "passed": true
+    },
+    {
+      "question": "vacation",
+      "expected_page": 5,
+      "top_page": 5,
+      "passed": true
+    },
+    {
+      "question": "support",
+      "expected_page": 6,
+      "top_page": 6,
+      "passed": true
+    },
+    {
+      "question": "password",
+      "expected_page": 7,
+      "top_page": 7,
+      "passed": true
+    },
+    {
+      "question": "backup",
+      "expected_page": 8,
+      "top_page": 8,
+      "passed": true
+    },
+    {
+      "question": "retention",
+      "expected_page": 9,
+      "top_page": 9,
+      "passed": true
+    },
+    {
+      "question": "invoice",
+      "expected_page": 10,
+      "top_page": 10,
+      "passed": true
+    },
+    {
+      "question": "travel",
+      "expected_page": 11,
+      "top_page": 11,
+      "passed": true
+    },
+    {
+      "question": "training",
+      "expected_page": 12,
+      "top_page": 12,
+      "passed": true
+    },
+    {
+      "question": "probation",
+      "expected_page": 13,
+      "top_page": 13,
+      "passed": true
+    },
+    {
+      "question": "overtime",
+      "expected_page": 14,
+      "top_page": 14,
+      "passed": true
+    },
+    {
+      "question": "parental",
+      "expected_page": 15,
+      "top_page": 15,
+      "passed": true
+    },
+    {
+      "question": "equipment",
+      "expected_page": 16,
+      "top_page": 16,
+      "passed": true
+    },
+    {
+      "question": "accessibility",
+      "expected_page": 17,
+      "top_page": 17,
+      "passed": true
+    },
+    {
+      "question": "encryption",
+      "expected_page": 18,
+      "top_page": 18,
+      "passed": true
+    },
+    {
+      "question": "incident",
+      "expected_page": 19,
+      "top_page": 19,
+      "passed": true
+    },
+    {
+      "question": "meeting",
+      "expected_page": 20,
+      "top_page": 20,
+      "passed": true
+    },
+    {
+      "question": "astronaut",
+      "passed": true
+    },
+    {
+      "question": "volcano",
+      "passed": true
+    },
+    {
+      "question": "dinosaur",
+      "passed": true
+    },
+    {
+      "question": "neptune",
+      "passed": true
+    },
+    {
+      "question": "alchemy",
+      "passed": true
+    }
+  ]
+}

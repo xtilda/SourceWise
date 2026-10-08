@@ -1,0 +1,16 @@
+services:
+  sourcewise:
+    build: .
+    ports:
+      - "127.0.0.1:8000:8000"
+    environment:
+      DATABASE_PATH: /app/data/sourcewise.db
+      ANSWER_MODE: ${ANSWER_MODE:-extractive}
+      OLLAMA_URL: http://host.docker.internal:11434
+      OLLAMA_MODEL: ${OLLAMA_MODEL:-qwen2.5:3b}
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    volumes:
+      - documents:/app/data
+volumes:
+  documents:
